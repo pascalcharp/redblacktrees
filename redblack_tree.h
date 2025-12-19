@@ -136,12 +136,9 @@ void RedBlackTree<K, V>::supprimer(const K &cle) {
     auto root_node = racine ;
     auto couleur_supprimee = root_node->color ;
 
-    // TODO: Problème à résoudre, si le node x restant est nil.  Il n'a pas de parent.  Il faut modifier la méthode rétablir
-
     while (root_node != nil) {
 
-        // Descendre dans l'arbre vers la clé, en gardant une référence au parent
-
+        // Descendre dans l'arbre vers la clé
 
         if (cle > root_node->cle) root_node = root_node->droite;
         else if (cle < root_node->cle) root_node = root_node->gauche;
@@ -182,7 +179,7 @@ void RedBlackTree<K, V>::supprimer(const K &cle) {
             // Aucun enfant nil, il faut utiliser le successeur
 
             else {
-                auto successeur = minDansSousArbre(root_node->gauche) ;
+                auto successeur = minDansSousArbre(root_node->droite) ;
                 root_node->cle = successeur->cle ;
 
                 // Le successeur ne peut pas avoir d'enfant à gauche
@@ -191,11 +188,16 @@ void RedBlackTree<K, V>::supprimer(const K &cle) {
                 root_node = transplanter(successeur->droite, successeur) ;
             }
 
+            // La suppression a eu lieu : rétablir l'invariant, le vérifier et sortir.
+
+            if (couleur_supprimee == BLACK && root_node != nil) retablirProprietesApresSuppression(root_node) ;
+            assert(invariant()) ;
+            return ;
         }
-        if (couleur_supprimee == BLACK && root_node != nil) retablirProprietesApresSuppression(root_node) ;
-        assert(invariant()) ;
-        return ;
     }
+
+    // Sorti de la boucle while sans avoir trouvé la clé à supprimer
+
     throw std::invalid_argument("supprimer: clé absente");
 }
 
@@ -254,11 +256,22 @@ void RedBlackTree<K, V>::rotationVersLaDroite(SousArbre root) {
 
 template<typename K, typename V>
 typename RedBlackTree<K, V>::SousArbre RedBlackTree<K, V>::transplanter(SousArbre child, SousArbre root) {
-    if (child != nil) child->parent = root->parent ;
+
+    // Cette étape est nécessaire pour que la méthode rétablirProprietesApresSuppression ait accès au bon parent même
+    // si le double-black est nil.
+
+    child->parent = root->parent ;
+
     if (root == root->parent->gauche) root->parent->gauche = child ;
     else root->parent->droite = child ;
 
+    // Libérer le node effacé, si le node remplaçant est en root, il faut mettre à jour l'attribut racine
+
     delete root ;
+    if (child->parent == nil) racine = child ;
+
+    // On va retourner le node remplaçant, cela permettra de mettre l'arbre à jour facilement
+
     return child ;
 }
 

@@ -71,3 +71,14 @@ TEST(redblack, insert_two_keys_suppress_second_key) {
     rb.supprimer(2) ;
     EXPECT_EQ(res, rb.parcourirEnOrdre()) ;
 }
+
+TEST(redblack, insert_many_keys_suppress_one) {
+    RedBlackTree<int, int> rb ;
+    std::vector<int> res {0, 1, 2, 4, 5} ;
+
+    for (int i = 0; i < 6; ++i) {
+        rb.inserer(i, i*10) ;
+    }
+    rb.supprimer(3) ;
+    EXPECT_EQ(res, rb.parcourirEnOrdre()) ;
+}
