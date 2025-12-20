@@ -49,6 +49,11 @@ public:
     std::vector<K> parcourirEnOrdre() const;
 
 private:
+
+    bool estEnfantDroite(SousArbre node) const ;
+
+    bool estEnfantGauche(SousArbre node) const ;
+
     void rotationVersLaGauche(SousArbre root);
 
     void rotationVersLaDroite(SousArbre root);
@@ -61,7 +66,7 @@ private:
 
     SousArbre minDansSousArbre(SousArbre root) const;
 
-    void retablirProprietesApresInsertion(SousArbre &root) ;
+    void retablirProprietesApresInsertion(SousArbre &x_node) ;
 
     void retablirProprietesApresSuppression(SousArbre root) ;
 
@@ -224,6 +229,16 @@ std::vector<K> RedBlackTree<K, V>::parcourirEnOrdre() const {
     return acc;
 }
 
+template<typename K, typename V>
+bool RedBlackTree<K, V>::estEnfantDroite(SousArbre node) const {
+    return node == node->parent->droite ;
+}
+
+template<typename K, typename V>
+bool RedBlackTree<K, V>::estEnfantGauche(SousArbre node) const {
+    return node == node->parent->gauche ;
+}
+
 /***********************************************************************************************************************
  * Méthodes privées: propriétés redblack
  **********************************************************************************************************************/
@@ -294,22 +309,22 @@ typename RedBlackTree<K, V>::SousArbre RedBlackTree<K, V>::minDansSousArbre(Sous
 }
 
 template<typename K, typename V>
-void RedBlackTree<K, V>::retablirProprietesApresInsertion(SousArbre &root) {
-    while (root->color == RED && root->parent->color == RED) {
-        SousArbre pere = root->parent;
+void RedBlackTree<K, V>::retablirProprietesApresInsertion(SousArbre &x_node) {
+    while (x_node->parent->color == RED) {
+        SousArbre pere = x_node->parent;
         SousArbre grandpere = pere->parent;
 
-        if (pere == grandpere->gauche) {
+        if (estEnfantGauche(x_node->parent)) {
             SousArbre oncle = grandpere->droite;
             if (oncle->color == RED) {
                 pere->color = BLACK;
                 oncle->color = BLACK;
                 grandpere->color = RED;
-                root = grandpere;
+                x_node = grandpere;
             } else {
-                if (root == pere->droite) {
+                if (estEnfantDroite(x_node)) {
                     rotationVersLaGauche(pere);
-                    pere = root;
+                    std::swap(x_node, pere) ;
                 }
                 rotationVersLaDroite(grandpere);
                 pere->color = BLACK;
@@ -321,11 +336,11 @@ void RedBlackTree<K, V>::retablirProprietesApresInsertion(SousArbre &root) {
                 pere->color = BLACK;
                 oncle->color = BLACK;
                 grandpere->color = RED;
-                root = grandpere;
+                x_node = grandpere;
             } else {
-                if (root == pere->gauche) {
+                if (estEnfantGauche(x_node)) {
                     rotationVersLaDroite(pere);
-                    pere = root;
+                    std::swap(x_node, pere) ;
                 }
                 rotationVersLaGauche(grandpere);
                 pere->color = BLACK;
@@ -360,7 +375,7 @@ void RedBlackTree<K, V>::retablirProprietesApresSuppression(SousArbre root) {
             }
             else {
 
-                // Cas 3 : Frère noir --> 2 rotations --> Fins
+                // Cas 3 : Frère noir --> 2 rotations --> Fin
                 if (frere->droite->color == BLACK) {
                     rotationVersLaDroite(frere) ;
                     frere->color = RED ;
