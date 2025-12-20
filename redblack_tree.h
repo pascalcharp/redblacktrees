@@ -21,7 +21,10 @@ private:
         K cle;
         V valeur;
 
+        // Attribut utilisé pour le calcul de l'invariant
+
         size_t black_height;
+
 
         explicit RedBlackNode(Color col) : color(col), parent(nullptr), gauche(nullptr), droite(nullptr),
                                            black_height(0) {
@@ -163,6 +166,7 @@ void RedBlackTree<K, V>::supprimer(const K &cle) {
                     // Cas limite : le seul node est la racine
                     else racine = nil ;
 
+                    nil->parent = root_node->parent;
                     delete root_node ;
                     root_node = nil ;
                 }
@@ -190,7 +194,7 @@ void RedBlackTree<K, V>::supprimer(const K &cle) {
 
             // La suppression a eu lieu : rétablir l'invariant, le vérifier et sortir.
 
-            if (couleur_supprimee == BLACK && root_node != nil) retablirProprietesApresSuppression(root_node) ;
+            if (couleur_supprimee == BLACK) retablirProprietesApresSuppression(root_node) ;
             assert(invariant()) ;
             return ;
         }
@@ -278,20 +282,20 @@ typename RedBlackTree<K, V>::SousArbre RedBlackTree<K, V>::transplanter(SousArbr
 template<typename K, typename V>
 typename RedBlackTree<K, V>::SousArbre RedBlackTree<K, V>::maxDansSousArbre(SousArbre root) const {
     if (root == nil) return nil ;
-    while (root->gauche != nil) root = root->gauche ;
+    while (root->droite != nil) root = root->droite ;
     return root ;
 }
 
 template<typename K, typename V>
 typename RedBlackTree<K, V>::SousArbre RedBlackTree<K, V>::minDansSousArbre(SousArbre root) const {
     if (root == nil) return nil ;
-    while (root->droite != nil) root = root->droite ;
+    while (root->gauche != nil) root = root->gauche ;
     return root ;
 }
 
 template<typename K, typename V>
 void RedBlackTree<K, V>::retablirProprietesApresInsertion(SousArbre &root) {
-    while (root->parent->color == RED) {
+    while (root->color == RED && root->parent->color == RED) {
         SousArbre pere = root->parent;
         SousArbre grandpere = pere->parent;
 
@@ -409,7 +413,7 @@ void RedBlackTree<K, V>::retablirProprietesApresSuppression(SousArbre root) {
                 parent->color = BLACK ;
                 frere->gauche->color = BLACK ;
 
-                // On veut sortir de la boucle while !
+                // Ceci nous force à sortir de la boucle while !
                 root = racine ;
             }
 
@@ -484,9 +488,11 @@ bool RedBlackTree<K, V>::auxRedRuleIsEnforced(SousArbre root) const {
 
 template<typename K, typename V>
 bool RedBlackTree<K, V>::invariant() const {
-    if (!treeIsOrdered()) return false;
-    if (!blackRuleIsEnforced()) return false;
-    if (!redRuleIsEnforced()) return false;
+
+    if (!treeIsOrdered()) return false ;
+    if (!blackRuleIsEnforced()) return false ;
+    if (!redRuleIsEnforced()) return false ;
+
     return racine->color == BLACK;
 }
 

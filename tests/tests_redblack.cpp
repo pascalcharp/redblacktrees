@@ -82,3 +82,31 @@ TEST(redblack, insert_many_keys_suppress_one) {
     rb.supprimer(3) ;
     EXPECT_EQ(res, rb.parcourirEnOrdre()) ;
 }
+
+TEST(redblack, insert_many_keys_suppress_all) {
+    RedBlackTree<int, int> rb ;
+    std::vector<int> res ;
+    for (int i = 0; i < 6; ++i) {
+        rb.inserer(i, i*10) ;
+    }
+    rb.supprimer(4) ;
+    rb.inserer(6, 100) ;
+    rb.supprimer(1) ;
+    rb.inserer(7, 200) ;
+    rb.supprimer(5) ;
+    rb.supprimer(2) ;
+    rb.supprimer(3) ;
+    rb.supprimer(0) ;
+}
+
+TEST(redblack, insert_problematic_keys) {
+    RedBlackTree<int, int> rb ;
+    std::vector<int> res ;
+    rb.inserer(1513, 1513) ;
+    rb.inserer(1900, 1900) ;
+    rb.inserer(7708, 7708) ;
+    rb.inserer(2009, 2009) ;
+    rb.inserer(8268, 8268) ;
+    rb.inserer(6837, 6937) ;
+    rb.inserer(2525, 2525) ;
+}
