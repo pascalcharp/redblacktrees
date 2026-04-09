@@ -43,13 +43,103 @@ private:
     using SousArbre = RedBlackNode *;
 
 public:
+    class const_iterator {
+    public:
+        using value_type = std::pair<const K, V>;
+        using reference = const value_type&;
+        using pointer = value_type*;
+        using iterator_category = std::bidirectional_iterator_tag ;
+
+        explicit const_iterator(SousArbre nil_node, SousArbre cour_node) : nil(nil_node), courant(cour_node) {}
+
+        // Opérateur de déréférencement
+        reference operator*() const {
+            assert(courant != nullptr && courant != nil);
+            return { courant->cle, courant->valeur };
+        }
+
+        // Opérateur d'accès via pointeur
+        pointer operator->() const {
+            assert(courant != nullptr && courant != nil);
+            return &(operator*());
+        }
+
+        // Opérateur pré-incrémentation (++it)
+        const_iterator& operator++() {
+            courant = prochain() ;
+            return *this;
+        }
+
+        // Opérateur post-incrémentation (it++)
+        const_iterator operator++(int) {
+            const_iterator temp = *this;
+            courant = prochain() ;
+            return temp;
+        }
+
+        // Opérateur pré-décrémentation (--it)
+        const_iterator& operator--() {
+            courant = precedent() ;  // Navigue vers le précédent nœud dans l'arbre
+            return *this;
+        }
+
+        // Opérateur post-décrémentation (it--)
+        const_iterator operator--(int) {
+            const_iterator temp = *this;
+            courant = precedent() ;
+            return temp;
+        }
+
+        // Comparateurs ==
+        bool operator==(const const_iterator& other) const {
+            assert(nil == other.nil) ;
+            return courant == other.courant ;
+        }
+
+        // Comparateurs !=
+        bool operator!=(const const_iterator& other) const {
+            assert(nil == other.nil) ;
+            return courant != other.courant ;
+        }
+
+
+    private:
+
+        SousArbre prochain() {
+            if (courant->droite != nil) {
+                auto next_node = courant->droite ;
+                while (next_node->gauche != nil) next_node = next_node->gauche ;
+                return next_node ;
+            }
+            auto next_node = courant ;
+            while (next_node->parent != nil && next_node == next_node->parent->droite) next_node = next_node->parent ;
+            return next_node->parent ;
+
+        }
+
+        SousArbre precedent() {
+            if (courant->gauche != nil) {
+                auto prev_node = courant->gauche ;
+                while (prev_node->droite != nil) prev_node = prev_node->droite ;
+                return prev_node ;
+            }
+            auto prev_node = courant ;
+            while (prev_node->parent != nil && prev_node == prev_node->parent->gauche) prev_node = prev_node->parent ;
+            return prev_node->parent ;
+        }
+
+        SousArbre nil ;
+        SousArbre courant ;
+    };
+
+public:
     RedBlackTree();
 
     RedBlackTree(const RedBlackTree &source) ;
 
     ~RedBlackTree() ;
 
-    RedBlackTree &operator=(const RedBlackTree source) ;
+    RedBlackTree &operator=(RedBlackTree source) ;
 
     void inserer(const K &cle, const V &valeur);
 
@@ -58,6 +148,14 @@ public:
     const V &lire(const K &cle) const;
 
     std::vector<K> parcourirEnOrdre() const;
+
+    const_iterator begin() {
+        return const_iterator(nil, minDansSousArbre(racine)) ;
+    }
+
+    const_iterator end() {
+        return const_iterator(nil, nil) ;
+    }
 
 private:
     SousArbre creerNodeNil() ;
@@ -71,8 +169,6 @@ private:
     void rotationVersLaDroite(SousArbre root);
 
     SousArbre transplanter(SousArbre child, SousArbre root) ;
-
-    SousArbre trouverCleDansSousArbre(SousArbre root, const K &cle) const;
 
     SousArbre maxDansSousArbre(SousArbre root) const;
 
@@ -116,6 +212,9 @@ RedBlackTree<K, V>::RedBlackTree() : nil(creerNodeNil()), racine(nil), cardinal(
 
 template<typename K, typename V>
 RedBlackTree<K, V>::RedBlackTree(const RedBlackTree &source) : nil(creerNodeNil()), racine(nil), cardinal(source.cardinal) {
+    assert(source.racine != nullptr) ;
+    assert(source.nil != nullptr) ;
+
     if (source.racine != source.nil) racine = auxClonerSousArbre(source.racine, source.nil, nil) ;
     nil->gauche = racine ;
 }
@@ -264,7 +363,7 @@ std::vector<K> RedBlackTree<K, V>::parcourirEnOrdre() const {
 template<typename K, typename V>
 typename RedBlackTree<K, V>::SousArbre RedBlackTree<K, V>::creerNodeNil() {
     auto *node = new RedBlackNode(BLACK) ;
-    node->parent = nil ;
+    node->parent = node ;
     node->gauche = node ;
     node->droite = node ;
     return node ;
