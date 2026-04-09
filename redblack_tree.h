@@ -5,6 +5,7 @@
 #ifndef REDBLACK_TREE_H
 #define REDBLACK_TREE_H
 #include <cassert>
+#include <cstddef>
 
 
 template<typename K, typename V>
@@ -33,12 +34,22 @@ private:
         RedBlackNode(const K &k, const V &v) : color(RED), parent(nullptr), gauche(nullptr), droite(nullptr), cle(k),
                                                valeur(v), black_height(0) {
         }
+
+        RedBlackNode(const K &k, const V &v, Color col, RedBlackNode *parent) : color(col), parent(parent),
+                                                                              gauche(nullptr), droite(nullptr), cle(k), valeur(v), black_height(0) {
+        }
     };
 
     using SousArbre = RedBlackNode *;
 
 public:
     RedBlackTree();
+
+    RedBlackTree(const RedBlackTree &source) ;
+
+    ~RedBlackTree() ;
+
+    RedBlackTree &operator=(const RedBlackTree source) ;
 
     void inserer(const K &cle, const V &valeur);
 
@@ -49,6 +60,12 @@ public:
     std::vector<K> parcourirEnOrdre() const;
 
 private:
+    SousArbre creerNodeNil() ;
+
+    void auxDetruireSousArbre(SousArbre root) ;
+
+    SousArbre auxClonerSousArbre(SousArbre source, SousArbre sourceNil, SousArbre parent) ;
+
     void rotationVersLaGauche(SousArbre root);
 
     void rotationVersLaDroite(SousArbre root);
@@ -94,7 +111,27 @@ private:
  **********************************************************************************************************************/
 
 template<typename K, typename V>
-RedBlackTree<K, V>::RedBlackTree() : nil(new RedBlackNode(BLACK)), racine(nil), cardinal(0) {
+RedBlackTree<K, V>::RedBlackTree() : nil(creerNodeNil()), racine(nil), cardinal(0) {
+}
+
+template<typename K, typename V>
+RedBlackTree<K, V>::RedBlackTree(const RedBlackTree &source) : nil(creerNodeNil()), racine(nil), cardinal(source.cardinal) {
+    if (source.racine != source.nil) racine = auxClonerSousArbre(source.racine, source.nil, nil) ;
+    nil->gauche = racine ;
+}
+
+template<typename K, typename V>
+RedBlackTree<K, V>::~RedBlackTree() {
+    auxDetruireSousArbre(racine) ;
+    delete nil ;
+}
+
+template<typename K, typename V>
+RedBlackTree<K, V> & RedBlackTree<K, V>::operator=(const RedBlackTree source) {
+    std::swap(nil, source.nil) ;
+    std::swap(racine, source.racine) ;
+    std::swap(cardinal, source.cardinal) ;
+    return *this ;
 }
 
 template<typename K, typename V>
@@ -210,9 +247,9 @@ const V &RedBlackTree<K, V>::lire(const K &cle) const {
     auto root_node = racine;
 
     while (root_node != nil) {
-        if (cle > root_node->lireCle()) root_node = root_node->droite;
-        else if (cle < root_node->lireCle()) root_node = root_node->gauche;
-        else return root_node->lireValeur();
+        if (cle > root_node->cle) root_node = root_node->droite;
+        else if (cle < root_node->cle) root_node = root_node->gauche;
+        else return root_node->valeur;
     }
     throw std::invalid_argument("lire: clé non trouvée dans l'arbre");
 }
@@ -223,6 +260,34 @@ std::vector<K> RedBlackTree<K, V>::parcourirEnOrdre() const {
     auxParcourirEnOrdre(racine, acc);
     return acc;
 }
+
+template<typename K, typename V>
+typename RedBlackTree<K, V>::SousArbre RedBlackTree<K, V>::creerNodeNil() {
+    auto *node = new RedBlackNode(BLACK) ;
+    node->parent = nil ;
+    node->gauche = node ;
+    node->droite = node ;
+    return node ;
+}
+
+template<typename K, typename V>
+void RedBlackTree<K, V>::auxDetruireSousArbre(SousArbre root) {
+    if (root == nil) return;
+    auxDetruireSousArbre(root->gauche);
+    auxDetruireSousArbre(root->droite);
+    delete root;
+}
+
+template<typename K, typename V>
+typename RedBlackTree<K, V>::SousArbre RedBlackTree<K, V>::auxClonerSousArbre(SousArbre source, SousArbre sourceNil,
+    SousArbre parent) {
+    if (source == sourceNil) return nil;
+    auto *node = new RedBlackNode(source->cle, source->valeur, source->color, parent);
+    node->gauche = auxClonerSousArbre(source->gauche, sourceNil, node);
+    node->droite = auxClonerSousArbre(source->droite, sourceNil, node);
+    return node;
+}
+
 
 /***********************************************************************************************************************
  * Méthodes privées: propriétés redblack

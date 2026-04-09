@@ -110,3 +110,40 @@ TEST(redblack, insert_problematic_keys) {
     rb.inserer(6837, 6937) ;
     rb.inserer(2525, 2525) ;
 }
+
+// ... existing code ...
+TEST(redblack, copy_empty_tree) {
+    RedBlackTree<int, int> original ;
+    RedBlackTree<int, int> copy = original ;
+
+    EXPECT_EQ(std::vector<int>{}, original.parcourirEnOrdre()) ;
+    EXPECT_EQ(std::vector<int>{}, copy.parcourirEnOrdre()) ;
+}
+
+TEST(redblack, copy_non_empty_tree_keeps_same_order) {
+    RedBlackTree<int, int> original ;
+    for (int i = 0; i < 6; ++i) {
+        original.inserer(i, i * 10) ;
+    }
+
+    RedBlackTree<int, int> copy = original ;
+
+    EXPECT_EQ(original.parcourirEnOrdre(), copy.parcourirEnOrdre()) ;
+}
+
+TEST(redblack, copy_is_independent_from_original) {
+    RedBlackTree<int, int> original ;
+    for (int i = 0; i < 6; ++i) {
+        original.inserer(i, i * 10) ;
+    }
+
+    RedBlackTree<int, int> copy = original ;
+
+    copy.supprimer(2) ;
+    copy.inserer(42, 420) ;
+
+    EXPECT_EQ((std::vector<int>{0, 1, 2, 3, 4, 5}), original.parcourirEnOrdre()) ;
+    EXPECT_EQ((std::vector<int>{0, 1, 3, 4, 5, 42}), copy.parcourirEnOrdre()) ;
+}
+
+
