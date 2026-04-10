@@ -146,4 +146,26 @@ TEST(redblack, copy_is_independent_from_original) {
     EXPECT_EQ((std::vector<int>{0, 1, 3, 4, 5, 42}), copy.parcourirEnOrdre()) ;
 }
 
+TEST(redblack, const_iterator_for_loop) {
+    RedBlackTree<int, int> arbre ;
+    std::vector<int> keys {4, 8, 1, 0, 2, 3, 5, 11, 9} ;
+    std::vector<int> expected {0, 10, 20, 30, 40, 50, 80, 90, 110} ;
+    std::vector<int> actual ;
+
+    for (auto k: keys) arbre.inserer(k, 10 * k) ;
+    for (const auto& v: arbre) actual.push_back(v) ;
+    EXPECT_EQ(actual, expected) ;
+}
+
+TEST(redblack, preorder_fold_tree) {
+    RedBlackTree<int, int> arbre ;
+    std::vector<int> keys {4, 8, 1, 0, 2, 3, 5, 11, 9} ;
+    for (auto k: keys) arbre.inserer(k, 10 * k) ;
+
+    auto res = arbre.preorder_fold_tree(0, [](int acc, int k, int v) {
+        return acc + v ;
+    }) ;
+    EXPECT_EQ(430, res) ;
+}
+
 

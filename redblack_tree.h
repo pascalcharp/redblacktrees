@@ -45,7 +45,7 @@ private:
 public:
     class const_iterator {
     public:
-        using value_type = std::pair<const K, V>;
+        using value_type = V ;
         using reference = const value_type&;
         using pointer = value_type*;
         using iterator_category = std::bidirectional_iterator_tag ;
@@ -55,7 +55,7 @@ public:
         // Opérateur de déréférencement
         reference operator*() const {
             assert(courant != nullptr && courant != nil);
-            return { courant->cle, courant->valeur };
+            return courant->valeur ;
         }
 
         // Opérateur d'accès via pointeur
@@ -92,14 +92,12 @@ public:
 
         // Comparateurs ==
         bool operator==(const const_iterator& other) const {
-            assert(nil == other.nil) ;
-            return courant == other.courant ;
+            return nil == other.nil && courant == other.courant ;
         }
 
         // Comparateurs !=
         bool operator!=(const const_iterator& other) const {
-            assert(nil == other.nil) ;
-            return courant != other.courant ;
+            return !(*this == other) ;
         }
 
 
@@ -149,6 +147,9 @@ public:
 
     std::vector<K> parcourirEnOrdre() const;
 
+    template <typename R, typename Callable>
+    R preorder_fold_tree(R init, Callable callback) const ;
+
     const_iterator begin() {
         return const_iterator(nil, minDansSousArbre(racine)) ;
     }
@@ -177,6 +178,9 @@ private:
     void retablirProprietesApresInsertion(SousArbre &root) ;
 
     void retablirProprietesApresSuppression(SousArbre root) ;
+
+    template<typename R, typename Callable>
+    R aux_preorder_fold_tree(SousArbre root, R acc, Callable callback) const ;
 
     void auxParcourirEnOrdre(SousArbre root, std::vector<K> &acc) const;
 
@@ -358,6 +362,12 @@ std::vector<K> RedBlackTree<K, V>::parcourirEnOrdre() const {
     std::vector<K> acc;
     auxParcourirEnOrdre(racine, acc);
     return acc;
+}
+
+template<typename K, typename V>
+template<typename R, typename Callable>
+R RedBlackTree<K, V>::preorder_fold_tree(R init, Callable callback) const {
+    return aux_preorder_fold_tree(racine, init, callback) ;
 }
 
 template<typename K, typename V>
@@ -585,6 +595,17 @@ void RedBlackTree<K, V>::retablirProprietesApresSuppression(SousArbre root) {
 
     }
     root->color = BLACK ;
+}
+
+template<typename K, typename V>
+template<typename R, typename Callable>
+R RedBlackTree<K, V>::aux_preorder_fold_tree(SousArbre root, R acc, Callable callback) const {
+    if (root == nil) return acc ;
+    acc = callback(acc, root->cle, root->valeur) ;
+    acc = aux_preorder_fold_tree(root->gauche, acc, callback) ;
+    acc = aux_preorder_fold_tree(root->droite, acc, callback) ;
+
+    return acc ;
 }
 
 template<typename K, typename V>
