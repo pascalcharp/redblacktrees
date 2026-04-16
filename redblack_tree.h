@@ -175,7 +175,7 @@ private:
 
     SousArbre minDansSousArbre(SousArbre root) const;
 
-    void retablirProprietesApresInsertion(SousArbre &root) ;
+    void retablirProprietesApresInsertion(SousArbre root) ;
 
     void retablirProprietesApresSuppression(SousArbre root) ;
 
@@ -230,7 +230,7 @@ RedBlackTree<K, V>::~RedBlackTree() {
 }
 
 template<typename K, typename V>
-RedBlackTree<K, V> & RedBlackTree<K, V>::operator=(const RedBlackTree source) {
+RedBlackTree<K, V> & RedBlackTree<K, V>::operator=(RedBlackTree source) {
     std::swap(nil, source.nil) ;
     std::swap(racine, source.racine) ;
     std::swap(cardinal, source.cardinal) ;
@@ -468,7 +468,7 @@ typename RedBlackTree<K, V>::SousArbre RedBlackTree<K, V>::minDansSousArbre(Sous
 }
 
 template<typename K, typename V>
-void RedBlackTree<K, V>::retablirProprietesApresInsertion(SousArbre &root) {
+void RedBlackTree<K, V>::retablirProprietesApresInsertion(SousArbre root) {
     while (root->color == RED && root->parent->color == RED) {
         SousArbre pere = root->parent;
         SousArbre grandpere = pere->parent;
